@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Box Plot</title></head>
+<body><hr />
+<p>title: "Box Plot - GeeksforGeeks"
+source: "https://www.geeksforgeeks.org/box-plot/"
+author:
+  - "[[GeeksforGeeks]]"
+published: 2021-01-19
+created: 2025-02-13
+description: "A Computer Science portal for geeks. It contains well written, well thought and well explained computer science and programming articles, quizzes and practice/competitive programming/company interview Questions."
+tags:
+  - "clippings"</p>
+<hr />
+<p>Box Plot is a graphical method to visualize data distribution for gaining insights and making informed decisions. Box plot is a type of chart that depicts a group of numerical data through their quartiles.</p>
+<p>In this article, we are going to discuss <strong><em>*components of a box plot, how to create a box plot, uses of a Box Plot, and how to compare box plots.</em></strong>*</p>
+<p>Table of Content</p>
+<ul>
+<li><a href="https://www.geeksforgeeks.org/box-plot/#what-is-a-box-plot">What is a Box Plot?</a></li>
+<li><a href="https://www.geeksforgeeks.org/box-plot/#how-to-create-a-box-plots">How to create a box plots?</a></li>
+<li><a href="https://www.geeksforgeeks.org/box-plot/#uses-of-a-box-plot">Uses of a Box Plot</a></li>
+<li><a href="https://www.geeksforgeeks.org/box-plot/#how-to-compare-box-plots">How to compare box plots?</a></li>
+</ul>
+<h2>What is a Box Plot?</h2>
+<p>The idea of box plot was presented by John Tukey in 1970. He wrote about it in his book “Exploratory Data Analysis” in 1977. Box plot is also known as a whisker plot, box-and-whisker plot, or simply a box-and whisker diagram. Box plot is a graphical representation of the distribution of a dataset. It displays key summary statistics such as the <a href="https://www.geeksforgeeks.org/median/">median</a>, <a href="https://www.geeksforgeeks.org/quartile-formula/">quartiles,</a> and potential <a href="https://www.geeksforgeeks.org/machine-learning-outlier/">outliers</a> in a concise and visual manner. By using Box plot you can provide a summary of the distribution, identify potential and compare different datasets in a compact and visual manner.</p>
+<h3><strong><em>*Elements of Box Plot</em></strong>*</h3>
+<p>A box plot gives a five-number summary of a set of data which is-</p>
+<ul>
+<li><strong><em>*Minimum</em></strong>* – It is the minimum value in the dataset excluding the outliers.</li>
+<li><strong><em>*First Quartile (Q1)</em></strong>* – 25% of the data lies below the First (lower) Quartile.</li>
+<li><strong><em>*Median (Q2)</em></strong>* – It is the mid-point of the dataset. Half of the values lie below it and half above.</li>
+<li><strong><em>*Third Quartile (Q3)</em></strong>* – 75% of the data lies below the Third (Upper) Quartile.</li>
+<li><strong><em>*Maximum</em></strong>* – It is the maximum value in the dataset excluding the outliers.</li>
+</ul>
+<p><img alt="" src="https://media.geeksforgeeks.org/wp-content/uploads/20201127012952/boxplot-660x233.png" /></p>
+<blockquote>
+<p><strong><em>*Note:</em></strong>* The box plot shown in the above diagram is a perfect plot with no skewness. The plots can have skewness and the median might not be at the center of the box.</p>
+</blockquote>
+<p>The area inside the box (50% of the data) is known as the <a href="https://www.geeksforgeeks.org/interquartile-range-and-quartile-deviation-using-numpy-and-scipy/"><strong><em>*Inter Quartile Range</em></strong>*</a><strong><em>*.</em></strong><em> The </em><strong><em>IQR</em></strong>* is calculated as –</p>
+<p><code>IQR = Q3-Q1</code></p>
+<p><strong><em>*Outlies</em></strong><em> are the data points </em><strong><em>below and above</em></strong><em> the </em><strong><em>lower and upper limit</em></strong>*. The lower and upper limit is calculated as – </p>
+<p><code>Lower Limit = Q1 - 1.5*IQR
+Upper Limit = Q3 + 1.5*IQR</code></p>
+<p>The values below and above these limits are considered outliers and the minimum and maximum values are calculated from the points which lie under the lower and upper limit.</p>
+<h2><strong><em>*How to create a box plots?</em></strong>*</h2>
+<p>Let us take a sample data to understand how to create a box plot.</p>
+<p>Here are the runs scored by a cricket team in a league of 12 matches – <strong><em>*</em>100, 120, 110, 150, 110, 140, 130, 170, 120, 220, 140, 110.</strong>***</p>
+<p>To draw a box plot for the given data first we need to arrange the data in ascending order and then find the minimum, first quartile, median, third quartile and the maximum.</p>
+<p>```
+Ascending Order 
+100, 110, 110, 110, 120, 120, 130, 140, 140, 150, 170, 220</p>
+<p>Median (Q2) = (120+130)/2 = 125; Since there were even values
+```</p>
+<p>To find the First Quartile we take the first six values and find their median.</p>
+<p><code>Q1 = (110+110)/2 = 110</code></p>
+<p>For the Third Quartile, we take the next six and find their median.</p>
+<p><code>Q3 = (140+150)/2 = 145</code></p>
+<p><strong><em>*Note:</em></strong>* If the total number of values is odd then we exclude the Median while calculating Q1 and Q3. Here since there were two central values we included them. Now, we need to calculate the Inter Quartile Range.</p>
+<p><code>IQR = Q3-Q1 = 145-110 = 35</code></p>
+<p>We can now calculate the Upper and Lower Limits to find the minimum and maximum values and also the outliers if any.</p>
+<p><code>Lower Limit = Q1-1.5*IQR = 110-1.5*35 = 57.5
+Upper Limit = Q3+1.5*IQR = 145+1.5*35 = 197.5</code></p>
+<p>So, the minimum and maximum between the range [57.5,197.5] for our given data are – </p>
+<p><code>Minimum = 100
+Maximum = 170</code></p>
+<p>The outliers which are outside this range are – </p>
+<p><code>Outliers = 220</code></p>
+<p>Now we have all the information, so we can draw the box plot which is as below-</p>
+<p><img alt="" src="https://media.geeksforgeeks.org/wp-content/uploads/20201127045529/boxplot1-660x158.png" /></p>
+<p>We can see from the diagram that the Median is not exactly at the center of the box and one whisker is longer than the other. We also have one Outlier.</p>
+<h2><strong><em>*Use-Cases of Box Plot</em></strong>*</h2>
+<ul>
+<li>Box plots provide a visual summary of the data with which we can quickly identify the average value of the data, how dispersed the data is, whether the data is skewed or not (skewness).</li>
+<li>The Median gives you the average value of the data.</li>
+<li>Box Plots shows Skewness of the data-</li>
+</ul>
+<p><code>a) If the Median is at the center of the Box and the whiskers are almost the 
+   same on both the ends then the data is Normally Distributed.
+b) If the Median lies closer to the First Quartile and if the whisker at the lower
+   end is shorter (as in the above example) then it has a Positive Skew (Right Skew).
+c) If the Median lies closer to the Third Quartile and if the whisker at the
+   upper end is shorter than it has a Negative Skew (Left Skew).</code></p>
+<p><img alt="" src="https://media.geeksforgeeks.org/wp-content/uploads/20201127052716/skewness-287x300.png" /></p>
+<ul>
+<li>The dispersion or spread of data can be visualized by the minimum and maximum values which are found at the end of the whiskers.</li>
+<li>The Box plot gives us the idea of about the Outliers which are the points which are numerically distant from the rest of the data.</li>
+</ul>
+<h2><strong><em>*How to compare box plots?</em></strong>*</h2>
+<p>As we have discussed at the beginning of the article that box plots make comparing characteristics of data between categories very easy. Let us have a look at how we can compare different box plots and derive statistical conclusions from them.</p>
+<p>Let us take the below two plots as an example: –</p>
+<p><img alt="" src="https://media.geeksforgeeks.org/wp-content/uploads/20201127060214/compareplots-300x295.png" /></p>
+<ul>
+<li><strong><em>*Compare the Medians —</em></strong>* If the median line of a box plot lies outside the box of the other box plot with which it is being compared, then we can say that there is likely to be a difference between the two groups. Here the Median line of the plot B lies outside the box of Plot A.</li>
+<li><strong><em>*Compare the Dispersion or Spread of data —</em></strong>* The Inter Quartile range (length of the box) gives us an idea about how dispersed the data is. Here Plot A has a longer length than Plot B which means that the dispersion of data is more in plot A as compared to plot B. The length of whiskers also gives an idea of the overall spread of data. The extreme values (minimum &amp;maximum) give the range of data distribution. Larger the range more scattered the data. Here Plot A has a larger range than Plot B.</li>
+<li><strong><em>*Comparing Outliers —</em></strong>* The outliers give the idea of unusual data values which are distant from the rest of the data. More number of Outliers means the prediction will be more uncertain. We can be more confident while predicting the values for a plot which has less or no outliers.</li>
+<li><strong><em>*Compare Skewness —</em></strong>* <a href="https://www.geeksforgeeks.org/skewness-measures-and-interpretation/">Skewness</a> gives us the direction and the magnitude of the lack of symmetry. We have discussed above how to identify skewness. Here Plot A is Positive or Right Skewed and Plot B is Negative or Left Skewed.</li>
+</ul>
+<p>This is all for Box Plots. Now you might have got the idea of Box Plots how to make them and how to derive information from them. For any queries do leave a comment down below.</p>
+<h2>Box plot – Frequently Asked Questions (FAQs)</h2>
+<h3>What do you mean by box plot?</h3>
+<blockquote>
+<p>A box plot, also known as a box-and-whisker plot, is a graphical representation of the distribution of a dataset. It summarizes key statistics such as the median, quartiles, and outliers, providing insights into the spread and central tendency of the data.</p>
+</blockquote>
+<h3>Box Plot is used for which type of data?</h3>
+<blockquote>
+<p>Box Plots gives a visual summary of the variability of values of dataset. Boxplots usually shows the numeric data values, especially is you want to compare multiple groups.</p>
+</blockquote>
+<h3>What information cannot be found in a box plot?</h3>
+<blockquote>
+<p>Information that are missed in a box plot is the detailed shape of the distribution. It is quite difficult to find the mean as it is visual representation of the data.</p>
+</blockquote>
+<h3>Is Box Plot vertical or horizontal?</h3>
+<blockquote>
+<p>Box Plot can either be drawn horizontally or vertically. It depends on the estimate L-estimators, range, mid-range and trimean.</p>
+</blockquote>
+<p><strong>Get IBM Certification</strong> and a <strong>90% fee refund</strong> on completing 90% course in 90 days! <a href="https://www.geeksforgeeks.org/courses/data-science-live?utm_source=geeksforgeeks&amp;utm_medium=bottomtextad&amp;utm_campaign=three90">Take the Three 90 Challenge today.</a></p>
+<p>Master Machine Learning, Data Science &amp; AI with this complete program and also get a 90% refund. What more motivation do you need? <a href="https://www.geeksforgeeks.org/courses/data-science-live?utm_source=geeksforgeeks&amp;utm_medium=bottomtextad&amp;utm_campaign=three90">Start the challenge right away!</a></p></body>
+</html>

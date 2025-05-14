@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>ROC</title></head>
+<body><p>The <strong>ROC (Receiver Operating Characteristic) curve</strong> is computed by plotting the <strong>True Positive Rate (TPR)</strong> against the <strong>False Positive Rate (FPR)</strong> at different classification thresholds. Here’s how it works:</p>
+<hr />
+<h3><strong>1. Definitions</strong></h3>
+<p>For a binary classification model, we have:</p>
+<ul>
+<li>
+<p><strong>True Positives (TP)</strong>: Model correctly predicts <strong>positive</strong>.</p>
+</li>
+<li>
+<p><strong>False Positives (FP)</strong>: Model incorrectly predicts <strong>positive</strong> when it’s actually negative.</p>
+</li>
+<li>
+<p><strong>True Negatives (TN)</strong>: Model correctly predicts <strong>negative</strong>.</p>
+</li>
+<li>
+<p><strong>False Negatives (FN)</strong>: Model incorrectly predicts <strong>negative</strong> when it’s actually positive.</p>
+</li>
+</ul>
+<p>We compute:</p>
+<p>$$TPR=TPTP+FN(Sensitivity/Recall)\text{TPR} = \frac{\text{TP}}{\text{TP} + \text{FN}} \quad \text{(Sensitivity/Recall)}TPR=TP+FNTP​(Sensitivity/Recall) FPR=FPFP+TN\text{FPR} = \frac{\text{FP}}{\text{FP} + \text{TN}}FPR=FP+TNFP$$​</p>
+<hr />
+<h3><strong>2. Computing the ROC Curve</strong></h3>
+<ol>
+<li>
+<p><strong>Get model probabilities</strong>: Instead of fixed 0/1 predictions, use predicted <strong>probabilities</strong> for the positive class.</p>
+</li>
+<li>
+<p><strong>Set multiple thresholds</strong>: Vary the threshold ttt from <strong>0 to 1</strong>.</p>
+</li>
+<li>
+<p><strong>For each threshold ttt</strong>:</p>
+<ul>
+<li>
+<p>Convert probabilities into class labels (y^=1\hat{y} = 1y^​=1 if probability &gt; ttt).</p>
+</li>
+<li>
+<p>Compute <strong>TPR</strong> and <strong>FPR</strong>.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Plot FPR vs. TPR</strong> at each threshold.</p>
+</li>
+</ol>
+<p>The <strong>closer the curve is to the top-left corner, the better the model</strong>.</p></body>
+</html>

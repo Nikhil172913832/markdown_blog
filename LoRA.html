@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>LoRA</title></head>
+<body><h1>ml</h1>
+<p>This is a technique to reduce the number of parameters to be trained during fine tuning.  $\theta_f = \theta_t + \Delta w$ . now you can have a matrix of same size as $\theta_f$ which lets say is of size R * C now we can represent this matrix as the product of two lower rank matrices as R * r and r * C this way we can significantly reduce the number of parameters that have to be trained as lets say the input vector is of shape k * R now we will have to perform k * R * C number of operations in case of the first case but now taking low rank approximation we have to perform k * R * r + k * r * C (first is the dimension of input vector and the second one is for the input dimension(size of each input vector) and the third one is the output size) as we can see have to perform considerably less number of operations and it also helps as we have less parameters to learn we can reach convergence faster with LoRA and generalize better on unseen data.</p></body>
+</html>
