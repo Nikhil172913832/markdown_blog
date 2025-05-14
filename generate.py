@@ -20,3 +20,15 @@ for md_file in posts_dir.glob("*.md"):
     output_path = build_dir / f"{md_file.stem}.html"
     output_path.write_text(html_page, encoding="utf-8")
 
+index_html = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>My Blog</title></head>
+<body>
+<h1>My Blog Posts</h1>
+<ul>
+{''.join(links)}
+</ul>
+</body>
+</html>"""
+
+(build_dir / "index.html").write_text(index_html, encoding="utf-8")
