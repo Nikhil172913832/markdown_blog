@@ -5,13 +5,24 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: List files in the repo (Debugging)
         run: |
           echo "Current directory:"
@@ -20,8 +31,7 @@ jobs:
           ls -la
 
       - name: Generate HTML
-        run: python generate.py
-        working-directory: ${{ github.workspace }}  # If this doesn't work, try using ${{ github.workspace }}/markdown_blog
+        run: python build.py
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -29,4 +39,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
           publish_branch: gh-pages
-
