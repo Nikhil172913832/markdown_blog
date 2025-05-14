@@ -1,33 +1,31 @@
-name: Deploy Blog to GitHub Pages
+name: Build and Deploy Markdown Blog
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: List files in the repo (Debugging)
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Listing files:"
+          ls -la
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.11
+      - name: Generate HTML
+        run: python generate.py
+        working-directory: ${{ github.workspace }}  # If this doesn't work, try using ${{ github.workspace }}/markdown_blog
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
-
-    - name: Generate HTML
-      run: python generate.py
-      working-directory: ${{ github.workspace }}
-
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
 
