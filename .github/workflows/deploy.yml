@@ -21,7 +21,9 @@ jobs:
       run: pip install -r requirements.txt
 
     - name: Generate HTML
-      run: python $GITHUB_WORKSPACE/generate.py
+      run: python generate.py
+      working-directory: ${{ github.workspace }}
+
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
