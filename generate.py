@@ -20,6 +20,12 @@ for md_file in posts_dir.glob("*.md"):
     output_path = build_dir / f"{md_file.stem}.html"
     output_path.write_text(html_page, encoding="utf-8")
 
+links = []
+for md_file in posts_dir.glob("*.md"):
+    title = md_file.stem
+    link = f'<li><a href="{title}.html">{title}</a></li>'
+    links.append(link)
+    
 index_html = f"""<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><title>My Blog</title></head>
