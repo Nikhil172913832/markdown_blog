@@ -12,7 +12,7 @@ tags:
 In machine learning model evaluation is crucial to ensure that the model performs well. Common evaluation metrics for classification tasks include accuracy, precision, recall, F1-score and AUC-ROC. In this article we’ll focus on the AUC-ROC curve a popular metric used to evaluate classification models.
 
 ## How AUC-ROC curve is used?
-
+Mother fucker its done
 The ****AUC-ROC curve**** is an essential tool used for evaluating the performance of binary classification models. It plots the ****True Positive Rate (TPR)**** against the ****False Positive Rate (FPR)**** at different thresholds showing how well a model can distinguish between two classes such as positive and negative outcomes.
 
 It provides a graphical representation of the model’s ability to distinguish between two classes like positive class for presence of a disease and negative class for absence of a disease.
