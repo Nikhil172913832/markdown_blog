@@ -1,0 +1,3 @@
+#ml
+
+RMSE is preferred when the outliers are exponentially rare like in a normal distribution but RMSE is very sensitive to outliers so use it only when large errors are undesirable where as MAE is more robust toward outliers and treats all errors as same as it is just the absolute average of deviation, should be used where all errors have to be treated equally.

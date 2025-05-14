@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>How to wrangle log data with Python and Apache Spark</title></head>
+<body><hr />
+<p>title: "How to wrangle log data with Python and Apache Spark"
+source: "https://opensource.com/article/19/5/log-data-apache-spark"
+author:
+  - "[[Dipanjan (DJ) Sarkar]]"
+published:
+created: 2025-02-07
+description: "Case study with NASA logs to show how Spark can be leveraged for analyzing data at scale."
+tags:
+  - "clippings"</p>
+<hr />
+<p>One of the most popular and effective enterprise use-cases which leverage analytics today is log analytics. Nearly every organization today has multiple systems and infrastructure running day in and day out. To effectively keep their business running, these organizations need to know if their infrastructure is performing to its maximum potential. Finding out involves analyzing system and application logs and maybe even applying predictive analytics on log data. The amount of log data involved is typically massive, depending on the type of organizational infrastructure involved and applications running on it. </p>
+<p><img alt="The log data processing pipeline by Doug Henschen." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_1_500.jpg" title="The log data processing pipeline" /></p>
+<p>Image by:</p>
+<p><sup>The log data processing pipeline</sup></p>
+<p>Gone are the days when we were limited to analyzing a data sample on a single machine due to compute constraints. Powered by big data, better and distributed computing, and frameworks like <a href="https://spark.apache.org/">Apache Spark</a> for big data processing and open source analytics, we can perform scalable log analytics on potentially billions of log messages daily. The intent of this case study-oriented tutorial is to take a hands-on approach showcasing how we can leverage Spark to perform log analytics at scale on semi-structured log data. If you are interested in scalable <a href="https://en.wikipedia.org/wiki/SQL">SQL</a> with Spark, feel free to check out <a href="https://towardsdatascience.com/sql-at-scale-with-apache-spark-sql-and-dataframes-concepts-architecture-and-examples-c567853a702f"><em>SQL at scale with Spark</em></a>.</p>
+<p>While there are many excellent open source frameworks and tools out there for log analytics—such as <a href="https://www.elastic.co/">Elasticsearch</a>—the intent of this two-part tutorial is to showcase how Spark can be leveraged for analyzing logs at scale. In the real world, you are of course free to choose your own toolbox when analyzing your log data.</p>
+<p>Let’s get started!</p>
+<h2>Main objective: NASA log analytics</h2>
+<p>As we mentioned before, Apache Spark is an excellent and ideal open source framework for wrangling, analyzing and modeling structured and unstructured data—at scale! In this tutorial, our main objective is one of the most popular use-cases in the industry—log analytics. Server logs are a common enterprise data source and often contain a gold mine of actionable insights and information. Log data comes from many sources in these conditions, such as the web, client and compute servers, applications, user-generated content, and flat files. These logs can be used for monitoring servers, improving business and customer intelligence, building recommendation systems, fraud detection, and much more.</p>
+<p>Spark allows you to cheaply dump and store your logs into files on disk, while still providing rich APIs to perform data analysis at scale. This hands-on case study will show you how to use Apache Spark on real-world production logs from <a href="https://www.nasa.gov/">NASA</a> while learning data wrangling and basic yet powerful techniques for exploratory data analysis. In this study, we will analyze log datasets from the <a href="https://www.nasa.gov/centers/kennedy/home/index.html">NASA Kennedy Space Center</a> web server in Florida.</p>
+<p>The full data set—containing two months’ worth of all HTTP requests to the NASA Kennedy Space Center—is freely available <a href="http://ita.ee.lbl.gov/html/contrib/NASA-HTTP.html">here</a> for download. Or, if you prefer FTP:</p>
+<ul>
+<li>Jul 01 to Jul 31, ASCII format, 20.7 MB gzip compressed, 205.2 MB uncompressed: <a href="https://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz">ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz</a></li>
+<li>Aug 04 to Aug 31, ASCII format, 21.8 MB gzip compressed, 167.8 MB uncompressed: <a href="https://ita.ee.lbl.gov/traces/NASA_access_log_Aug95.gz">ftp://ita.ee.lbl.gov/traces/NASA_access_log_Aug95.gz</a></li>
+</ul>
+<p>Next, if you want to follow along, download the tutorial from <a href="https://github.com/dipanjanS/data_science_for_all/tree/master/tds_scalable_log_analytics"><strong><em>my GitHub</em></strong></a> and place both of these files in the same directory as the tutorial’s <a href="https://jupyter.org/">Jupyter Notebook</a>.</p>
+<h2>Setting up dependencies</h2>
+<p>The first step is to make sure you have access to a Spark session and cluster. For this step, you can use your own local Spark setup or a cloud-based setup. Typically, most cloud platforms provide a Spark cluster these days and you also have free options, including <a href="https://community.cloud.databricks.com/">Databricks community edition</a>. This tutorial assumes you already have Spark set up, hence we will not be spending additional time configuring or setting up Spark from scratch.</p>
+<p>Often pre-configured Spark setups already have the necessary environment variables or dependencies pre-loaded when you start your Jupyter Notebook server. In my case, I can check them using the following commands in my notebook:</p>
+<p><code>python
+spark</code></p>
+<p><img alt="Spark session" src="https://opensource.com/sites/default/files/uploads/spark_session.png" title="Spark session" /></p>
+<p>These results show me that my cluster is running Spark 2.4.0 at the moment. We can also check if <strong>sqlContext</strong> is present using the following code:</p>
+<p><code>python
+sqlContext</code></p>
+<p><code>**&lt;pyspark.sql.context.SQLContext at 0x7fb1577b6400&gt;**</code></p>
+<p>Now in case you don’t have these variables pre-configured and get an error, you can load and configure them using the following code:</p>
+<p>```python</p>
+<h1>configure spark variables</h1>
+<p>from pyspark.context import SparkContext
+from pyspark.sql.context import SQLContext
+from pyspark.sql.session import SparkSession</p>
+<p>sc = SparkContext()
+sqlContext = SQLContext(sc)
+spark = SparkSession(sc)</p>
+<h1>load up other dependencies</h1>
+<p>import re
+import pandas as pd
+```</p>
+<p>We also need to load other libraries for working with <a href="https://pandas.pydata.org/pandas-docs/stable/getting_started/dsintro.html#dataframe">DataFrames</a> and <a href="https://en.wikipedia.org/wiki/Regular_expression">regular expressions</a>. Working with regular expressions is one of the major aspects of parsing log files. This tool offers a powerful pattern-matching technique which can be used to extract and find patterns in semi-structured and unstructured data.</p>
+<p><img alt="The Perl Problems strip from xkcd." src="https://opensource.com/sites/default/files/perl_problems_600.png" title="The Perl Problems strip from xkcd." /></p>
+<p>Image by:</p>
+<p><sup>The Perl Problems strip from <a href="https://www.xkcd.com/1171/" target="_blank" rel="ugc">xkcd</a>.</sup></p>
+<p>Regular expressions can be extremely effective and powerful, yet they can also be overwhelming and confusing. Not to worry though, with practice you can really leverage their maximum potential. The following example showcases a way of using regular expressions in <a href="https://www.python.org/">Python</a>. Here, we try to find all occurences of the word <em>'spark'</em> in a given input sentence.</p>
+<p><code>python
+m = re.finditer(r'.*?(spark).*?', "I'm searching for a spark in PySpark", re.I)
+for match in m:
+    print(match, match.start(), match.end())</code></p>
+<p><code>**&lt;_sre.SRE_Match object; span=(0, 25), match=“I’m searching for a spark”&gt; 0 25**</code></p>
+<p><code>** &lt;_sre.SRE_Match object; span=(25, 36), match=’ in PySpark’&gt; 25 36**</code></p>
+<p>Let’s move on to the next part of our analysis.</p>
+<h2>Loading and Viewing the NASA Log Dataset</h2>
+<p>Given that our data is stored in the following path (in the form of flat files), let’s load it into a DataFrame. We’ll do this in steps. The following code loads our disk’s log data file names:</p>
+<p>```python
+import glob</p>
+<p>raw_data_files = glob.glob('*.gz')
+raw_data_files
+```</p>
+<p><code>**[‘NASA_access_log_Jul95.gz’, ‘NASA_access_log_Aug95.gz’]**</code></p>
+<p>Now, we’ll use <strong>sqlContext.read.text()</strong> or <strong>spark.read.text()</strong> to read the text file. This code produces a DataFrame with a single string column called <strong>value</strong>:</p>
+<p><code>text
+base_df = spark.read.text(raw_data_files)
+base_df.printSchema()</code></p>
+<p><code>**root**</code></p>
+<p><code>** |-- value: string (nullable = true)**</code></p>
+<p>This output allows us to see the text for our log data’s schema that we will soon inspect. You can view the type of data structure holding our log data using the following code:</p>
+<p><code>python
+type(base_df)</code></p>
+<p><code>**pyspark.sql.dataframe.DataFrame**</code></p>
+<p>Throughout this tutorial we use Spark DataFrames. However if you want, you can also convert a DataFrame into a <a href="https://en.wikipedia.org/wiki/Apache_Spark">Resilient Distributed Dataset (RDD)</a>—Spark’s original data structure ()—if needed by adding the following code:</p>
+<p><code>python
+base_df_rdd = base_df.rdd
+type(base_df_rdd)</code></p>
+<p><code>**pyspark.rdd.RDD**</code></p>
+<p>Let’s now take a peek at the actual log data in our DataFrame: </p>
+<p><code>python
+base_df.show(10, truncate=False)</code></p>
+<p><img alt="The log data within the dataframe." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_4_600_0.png" title="The log data within the base_df.show dataframe" /></p>
+<p>Image by:</p>
+<p>The log data within the base_df.show dataframe</p>
+<p>This result definitely looks like standard semi-structured server log data. We will definitely need to do some data processing and wrangling before this file is useful. Do remember that accessing data from RDDs is slightly different as seen below:</p>
+<p><code>python
+base_df_rdd.take(10)</code></p>
+<p><img alt="Log data from the resilient distributed datasets." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_5_600_0.png" title="Figure 5: The log data within the dataframe via base_df_rdd" /></p>
+<p>Image by:</p>
+<p>Figure 5: The log data within the dataframe via base_df_rdd</p>
+<p>Now that we have loaded and viewed our log data, let’s process and wrangle it.</p>
+<h2>Data Wrangling</h2>
+<p>In this section, we clean and parse our log dataset to extract structured attributes with meaningful information from each log message.</p>
+<h3>Log data understanding</h3>
+<p>If you’re familiar with web server logs, you’ll recognize that the data displayed above is in <a href="https://www.w3.org/Daemon/User/Config/Logging.html#common-logfile-format">Common Log Format</a>. The fields are:</p>
+<p><code>**remotehost**** rfc931 ****authuser**** [date] "request" status bytes**</code></p>
+<p>| Field | Description |
+| --- | --- |
+| <em>remotehost</em> | Remote hostname (or IP number if DNS hostname is not available or if <a href="https://www.w3.org/Daemon/User/Config/General.html#DNSLookup">DNSLookup</a> is off). |
+| <em>rfc931</em> | The remote logname of the user if at all it is present. |
+| <em>authuser</em> | The username of the remote user after authentication by the HTTP server. |
+| <em>[date]</em> | Date and time of the request. |
+| <em>“request”</em> | The request, exactly as it came from the browser or client. |
+| <em>status</em> | The <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">HTTP status code</a> the server sent back to the client. |
+| <em>bytes</em> | The number of bytes (<code>Content-Length</code>) transferred to the client. |</p>
+<p>We now need techniques to parse, match, and extract these attributes from the log data.</p>
+<h3>Data parsing and extraction with regular expressions</h3>
+<p>Next, we have to parse our semi-structured log data into individual columns. We’ll use the special built-in <strong><a href="http://spark.apache.org/docs/latest/api/python/pyspark.sql.html#pyspark.sql.functions.regexp_extract">regexp_extract()</a></strong> function to do the parsing. This function matches a column against a regular expression with one or more <strong><a href="http://regexone.com/lesson/capturing_groups">capture</a></strong> <a href="http://regexone.com/lesson/capturing_groups"><strong>groups</strong></a>, and allows you to extract one of the matched groups. We’ll use one regular expression for each field we wish to extract.</p>
+<p>You must have heard or used a fair bit of regular expressions by now. If you find regular expressions confusing (and they certainly <em>can</em> be), and you want to learn more about them, we recommend checking out the <a href="http://regexone.com/">RegexOne web site</a>. You might also find <a href="http://shop.oreilly.com/product/0636920023630.do"><em>Regular Expressions Cookbook</em></a>, by Goyvaerts and Levithan, to be a useful reference.</p>
+<p>Let’s take a look at the total number of logs we are working within our dataset:</p>
+<p><code>python
+print((base_df.count(), len(base_df.columns)))</code></p>
+<p><code>**(3461613, 1)**</code></p>
+<p>Looks like we have a total of approximately 3.46 million log messages. Not a small number! Let’s extract and take a look at some sample log messages:</p>
+<p><code>python
+sample_logs = [item['value'] for item in base_df.take(15)]
+sample_logs</code></p>
+<h4></h4>
+<p><img alt="Sample log messages." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_6_600.png" title="Sample log messages." /></p>
+<p>Image by:</p>
+<p><sup>Sample log messages.</sup></p>
+<p>Let’s write some regular expressions to extract the hostname from the logs:</p>
+<p><code>python
+host_pattern = r'(^\S+\.[\S+\.]+\S+)\s'
+hosts = [re.search(host_pattern, item).group(1)
+           if re.search(host_pattern, item)
+           else 'no match'
+           for item in sample_logs]
+hosts</code></p>
+<p><code>**[‘199.72.81.55’,**</code></p>
+<p><code>** ‘unicomp6.unicomp.net’,**</code></p>
+<p><code>** ‘199.120.110.21’,**</code></p>
+<p><code>** ‘burger.letters.com’,**</code></p>
+<p><code>** …,**</code></p>
+<p><code>** …,**</code></p>
+<p><code>** ‘unicomp6.unicomp.net’,**</code></p>
+<p><code>** ‘d104.aa.net’,**</code></p>
+<p><code>** ‘d104.aa.net’]**</code></p>
+<p>Let’s use regular expressions to extract the timestamp fields from the logs:</p>
+<p><code>python
+ts_pattern = r'\[(\d{2}/\w{3}/\d{4}:\d{2}:\d{2}:\d{2} -\d{4})]'
+timestamps = [re.search(ts_pattern, item).group(1) for item in sample_logs]
+timestamps</code></p>
+<p><code>**[‘01/Jul/1995:00:00:01 -0400’,**</code></p>
+<p><code>** ‘01/Jul/1995:00:00:06 -0400’,**</code></p>
+<p><code>** ‘01/Jul/1995:00:00:09 -0400’,**</code></p>
+<p><code>** …,**</code></p>
+<p><code>** …,**</code></p>
+<p><code>** ‘01/Jul/1995:00:00:14 -0400’,**</code></p>
+<p><code>** ‘01/Jul/1995:00:00:15 -0400’,**</code></p>
+<p><code>** ‘01/Jul/1995:00:00:15 -0400’]**</code></p>
+<h3>Extracting HTTP request method, URIs, and protocol</h3>
+<p>Let’s now use regular expressions to extract the HTTP request methods, <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">URIs</a>, and Protocol patterns fields from the logs:</p>
+<p><code>python
+method_uri_protocol_pattern = r'\"(\S+)\s(\S+)\s*(\S*)\"'
+method_uri_protocol = [re.search(method_uri_protocol_pattern, item).groups()
+               if re.search(method_uri_protocol_pattern, item)
+               else 'no match'
+              for item in sample_logs]
+method_uri_protocol</code></p>
+<p><code>**[(‘GET’, ‘/history/apollo/’, ‘HTTP/1.0’),**</code></p>
+<p><code>** (‘GET’, ‘/shuttle/countdown/’, ‘HTTP/1.0’),**</code></p>
+<p><code>** …,**</code></p>
+<p><code>** …,**</code></p>
+<p><code>** (‘GET’, ‘/shuttle/countdown/count.gif’, ‘HTTP/1.0’),**</code></p>
+<p><code>** (‘GET’, ‘/images/NASA-logosmall.gif’, ‘HTTP/1.0’)]**</code></p>
+<p>Let’s now use regular expressions to extract the HTTP status codes from the logs: </p>
+<p><code>python
+status_pattern = r'\s(\d{3})\s'
+status = [re.search(status_pattern, item).group(1) for item in sample_logs]
+print(status)</code></p>
+<p><code>**[‘200’, ‘200’, ‘200’, ‘304’, …, ‘200’, ‘200’]**</code></p>
+<h3>Extracting HTTP response content size</h3>
+<p>Let’s now use regular expressions to extract the HTTP response content size from the logs: </p>
+<p><code>python
+content_size_pattern = r'\s(\d+)$'
+content_size = [re.search(content_size_pattern, item).group(1) for item in sample_logs]
+print(content_size)</code></p>
+<p><code>**[‘6245’, ‘3985’, ‘4085’, ‘0’, …, ‘1204’, ‘40310’, ‘786’]**</code></p>
+<h3>Putting it all together</h3>
+<p>Let’s now leverage all the regular expression patterns we previously built and use the <strong><code>regexp_extract(...)</code></strong> method to build our DataFrame with all of the log attributes neatly extracted in their own separate columns.</p>
+<p>```python
+from pyspark.sql.functions import regexp_extract</p>
+<p>logs_df = base_df.select(regexp_extract('value', host_pattern, 1).alias('host'),
+                         regexp_extract('value', ts_pattern, 1).alias('timestamp'),
+                         regexp_extract('value', method_uri_protocol_pattern, 1).alias('method'),
+                         regexp_extract('value', method_uri_protocol_pattern, 2).alias('endpoint'),
+                         regexp_extract('value', method_uri_protocol_pattern, 3).alias('protocol'),
+                         regexp_extract('value', status_pattern, 1).cast('integer').alias('status'),
+                         regexp_extract('value', content_size_pattern, 1).cast('integer').alias('content_size'))
+logs_df.show(10, truncate=True)
+print((logs_df.count(), len(logs_df.columns)))
+```</p>
+<p><img alt="Log dataframe extracted using regexp_extract(...)" src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_7_600.png" title="Log dataframe extracted using regexp_extract(...)" /></p>
+<p>Image by:</p>
+<p><sup>Log dataframe extracted using regexp_extract(...)</sup></p>
+<h3>Finding missing values</h3>
+<p>Missing and null values are the bane of data analysis and machine learning. Let’s see how well our data parsing and extraction logic worked. First, let’s verify that there are no null rows in the original DataFrame:</p>
+<p><code>python
+(base_df
+    .filter(base_df['value']
+                .isNull())
+    .count())</code></p>
+<p><code>**0**</code></p>
+<p>All good! Now, if our data parsing and extraction worked properly, we should not have any rows with potential null values. Let’s try and put that to test:</p>
+<p><code>python
+bad_rows_df = logs_df.filter(logs_df['host'].isNull()| 
+                             logs_df['timestamp'].isNull() | 
+                             logs_df['method'].isNull() |
+                             logs_df['endpoint'].isNull() |
+                             logs_df['status'].isNull() |
+                             logs_df['content_size'].isNull()|
+                             logs_df['protocol'].isNull())
+bad_rows_df.count()</code></p>
+<p><code>**33905**</code></p>
+<p>Ouch! Looks like we have over 33K missing values in our data! Can we handle this?</p>
+<p>Do remember, this is not a regular pandas (link) DataFrame which you can directly query and get which columns have null. Our so-called <em>big dataset</em> is residing on disk which can potentially be present in multiple nodes in a spark cluster. So how do we find out which columns have potential nulls?</p>
+<h3>Finding null counts</h3>
+<p>We can typically use the following technique to find out which columns have null values.</p>
+<p><strong>Note:</strong> This approach is adapted from an <a href="http://stackoverflow.com/a/33901312">excellent answer</a> on <a href="https://stackoverflow.com/">StackOverflow</a>.</p>
+<p>```python
+from pyspark.sql.functions import col
+from pyspark.sql.functions import sum as spark_sum</p>
+<p>def count_null(col_name):
+    return spark_sum(col(col_name).isNull().cast('integer')).alias(col_name)</p>
+<h1>Build up a list of column expressions, one per column.</h1>
+<p>exprs = [count_null(col_name) for col_name in logs_df.columns]</p>
+<h1>Run the aggregation. The *exprs converts the list of expressions into</h1>
+<h1>variable function arguments.</h1>
+<p>logs_df.agg(*exprs).show()
+```</p>
+<p><img alt="Checking which columns have null values." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_8.png" title="Checking which columns have null values with count_null()" /></p>
+<p>Image by:</p>
+<p><sup>Checking which columns have null values with count_null()</sup></p>
+<p>Well, looks like we have one missing value in the <strong>status</strong> column and everything else is in the <strong>content_size</strong> column. Let’s see if we can figure out what’s wrong!</p>
+<h3>Handling nulls in HTTP status</h3>
+<p>Our original parsing regular expression for the <strong>status</strong> column was:</p>
+<p><code>python
+regexp_extract('value', r'\s(\d{3})\s', 1).cast('integer')
+                                          .alias( 'status')</code></p>
+<p>Could it be that there are more digits making our regular expression wrong? Or is the data point itself bad? Let’s find out.</p>
+<p><strong>Note</strong>: In the expression below, the tilde (<code>**~**)</code> means “not”.</p>
+<p><code>python
+null_status_df = base_df.filter(~base_df['value'].rlike(r'\s(\d{3})\s'))
+null_status_df.count()</code></p>
+<p><code>**1**</code></p>
+<p>Let’s look at what this bad record looks like:</p>
+<p><code>text
+null_status_df.show(truncate=False)</code></p>
+<p><img alt="A bad record that's missing information." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_9.png" title="A bad record that's missing information via null_status_df" /></p>
+<p>Image by:</p>
+<p><sup>A bad record that's missing information via null_status_df</sup></p>
+<p>Looks like a record with a lot of missing information. Let’s pass this through our log data parsing pipeline:</p>
+<p><code>python
+bad_status_df = null_status_df.select(regexp_extract('value', host_pattern, 1).alias('host'),
+                                      regexp_extract('value', ts_pattern, 1).alias('timestamp'),
+                                      regexp_extract('value', method_uri_protocol_pattern, 1).alias('method'),
+                                      regexp_extract('value', method_uri_protocol_pattern, 2).alias('endpoint'),
+                                      regexp_extract('value', method_uri_protocol_pattern, 3).alias('protocol'),
+                                      regexp_extract('value', status_pattern, 1).cast('integer').alias('status'),
+                                      regexp_extract('value', content_size_pattern, 1).cast('integer').alias('content_size'))
+bad_status_df.show(truncate=False)</code></p>
+<p><img alt="The full bad log record containing no information and two null entries." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_10.png" title="The full bad log record containing no information and two null entries." /></p>
+<p>Image by:</p>
+<p><sup>The full bad log record containing no information and two null entries.</sup></p>
+<p>Looks like the record itself is an incomplete record with no useful information, the best option would be to drop this record as follows:</p>
+<p><code>python
+logs_df = logs_df[logs_df['status'].isNotNull()]
+exprs = [count_null(col_name) for col_name in logs_df.columns]
+logs_df.agg(*exprs).show()</code></p>
+<p><img alt="The dropped record." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_11.png" title="The dropped record." /></p>
+<p>Image by:</p>
+<p><sup>The dropped record.</sup></p>
+<h3>Handling nulls in HTTP content size</h3>
+<p>Based on our previous regular expression, our original parsing regular expression for the <strong>content_size</strong> column was:</p>
+<p><code>python
+regexp_extract('value', r'\s(\d+)$', 1).cast('integer')
+                                       .alias('content_size')</code></p>
+<p>Could there be missing data in our original dataset itself? Let’s find out. We first find the records with potential missing content sizes in our base DataFrame:</p>
+<p><code>python
+null_content_size_df = base_df.filter(~base_df['value'].rlike(r'\s\d+$'))
+null_content_size_df.count()</code></p>
+<p><code>**33905**</code></p>
+<p>The number seems to match the number of missing content size values in our processed DataFrame. Let’s take a look at the top ten records of our data frame having missing content sizes:</p>
+<p><code>python
+null_content_size_df.take(10)</code></p>
+<p><img alt="The top 10 dataframe records with missing content sizes." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_12_600.png" title="The top 10 dataframe records with missing content sizes." /></p>
+<p>Image by:</p>
+<p><sub>The top 10 dataframe records with missing content sizes.</sub></p>
+<p>It is quite evident that the bad raw data records correspond to error responses, where no content was sent back and the server emitted a <strong><code>-</code></strong> for the <code>**content_size**</code> field. Since we don’t want to discard those rows from our analysis, let’s impute or fill them with 0.</p>
+<h3>Fix the rows with null content_size</h3>
+<p>The easiest solution is to replace the null values in <code>**logs_df**</code> with 0 like we discussed earlier. The Spark DataFrame API provides a set of functions and fields specifically designed for working with null values, among them:</p>
+<ul>
+<li><code>[**fillna**](http://spark.apache.org/docs/latest/api/python/pyspark.sql.html#pyspark.sql.DataFrame.fillna)[**()**](https://opensource.com/%28http%3A//spark.apache.org/docs/latest/api/python/pyspark.sql.html#pyspark.sql.DataFrame.fillna\))</code>, which fills null values with specified non-null values.</li>
+<li><code>[**na**](http://spark.apache.org/docs/latest/api/python/pyspark.sql.html#pyspark.sql.DataFrame.na)</code>, which returns a <strong><code>[DataFrameNaFunctions](http://spark.apache.org/docs/latest/api/python/pyspark.sql.html#pyspark.sql.DataFrameNaFunctions)</code></strong> object with many functions for operating on null columns.</li>
+</ul>
+<p>There are several ways to invoke this function. The easiest is just to replace all null columns with known values. But, for safety, it’s better to pass a Python dictionary containing <code>**(column_name, value)**</code> mappings. That’s what we’ll do. An example from the documentation is depicted below: </p>
+<p>```python</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>df4.na.fill({'age': 50, 'name': 'unknown'}).show()
++---+------+-------+
+|age|height|   name|
++---+------+-------+
+| 10|    80|  Alice|
+|  5|  null|    Bob|
+| 50|  null|    Tom|
+| 50|  null|unknown|
++---+------+-------+
+```</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>Now we use this function to fill all the missing values in the <code>**content_size**</code> field with 0:</p>
+<p><code>python
+logs_df = logs_df.na.fill({'content_size': 0})
+exprs = [count_null(col_name) for col_name in logs_df.columns]
+logs_df.agg(*exprs).show()</code></p>
+<p><img alt="The null values now replaced by zero." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_13.png" title="The null values now replaced by zero." /></p>
+<p>Image by:</p>
+<p><sup>The null values now replaced by zero.</sup></p>
+<p>Look at that, no missing values!</p>
+<h3>Handling temporal fields (timestamp)</h3>
+<p>Now that we have a clean, parsed DataFrame, we have to parse the timestamp field into an actual timestamp. The Common Log Format time is somewhat non-standard. A <a href="https://en.wikipedia.org/wiki/User-defined_function">User-Defined Function (UDF)</a> is the most straightforward way to parse it: </p>
+<p>```python
+from pyspark.sql.functions import udf</p>
+<p>month_map = {
+  'Jan': 1, 'Feb': 2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6, 'Jul':7,
+  'Aug':8,  'Sep': 9, 'Oct':10, 'Nov': 11, 'Dec': 12
+}</p>
+<p>def parse_clf_time(text):
+    """ Convert Common Log time format into a Python datetime object
+    Args:
+        text (str): date and time in Apache time format [dd/mmm/yyyy:hh:mm:ss (+/-)zzzz]
+    Returns:
+        a string suitable for passing to CAST('timestamp')
+    """
+    # NOTE: We're ignoring the time zones here, might need to be handled depending on the problem you are solving
+    return "{0:04d}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:02d}".format(
+      int(text[7:11]),
+      month_map[text[3:6]],
+      int(text[0:2]),
+      int(text[12:14]),
+      int(text[15:17]),
+      int(text[18:20])
+    )
+```</p>
+<p>Let’s now use this function to parse our DataFrame's <code>**time**</code>column:</p>
+<p>```python
+udf_parse_time = udf(parse_clf_time)</p>
+<p>logs_df = (logs_df.select('*', udf_parse_time(logs_df['timestamp'])
+                                  .cast('timestamp')
+                                  .alias('time'))
+                  .drop('timestamp')
+logs_df.show(10, truncate=True)
+```</p>
+<p><img alt="The timestamp parsed with a User-Defined Function (UDF)." src="https://opensource.com/sites/default/files/uploads/processing_and_wrangling_nasa_logs_figure_14_600.png" title="The timestamp parsed with a User-Defined Function (UDF)." /></p>
+<p>Image by:</p>
+<p><sup>The timestamp parsed with a User-Defined Function (UDF).</sup></p>
+<p>Things seem to be looking good! Let’s verify this by checking our DataFrame's schema:</p>
+<p><code>python
+logs_df.printSchema()</code></p>
+<p><code>**root**</code></p>
+<p><code>** |-- host: string (nullable = true)**</code></p>
+<p><code>** |-- method: string (nullable = true)**</code></p>
+<p><code>** |-- endpoint: string (nullable = true)**</code></p>
+<p><code>** |-- protocol: string (nullable = true)**</code></p>
+<p><code>** |-- status: integer (nullable = true)**</code></p>
+<p><code>** |-- content_size: integer (nullable = false)**</code></p>
+<p><code>**|-- time: timestamp (nullable = true)**</code></p>
+<p>Let’s now cache  <strong><code>logs_df</code></strong> since we will be using it extensively for our data analysis section in <a href="https://opensource.com/article/19/5/visualizing-and-analyzing-nasa-logs">part two</a> of this series.</p>
+<p><code>python
+logs_df.cache()</code></p>
+<h2>Conclusion</h2>
+<p>Acquiring, processing and wrangling data are some of the most important steps in any end-to-end Data Science or Analytics use-case. Things start getting more difficult when dealing with semi-structured or unstructured data at scale. This case study gives you a step-by-step hands-on approach to leveraging the power of open-source tools and frameworks like Python and Spark to process and wrangling semi-structured NASA log data at scale. Once we have prepared a clean dataset, we can finally start using it to gain useful insights about NASA servers. Click through to the second article in this series for a <a href="https://opensource.com/article/19/5/visualize-log-data-apache-spark">hands-on tutorial</a> on Analyzing and Visualizing NASA log data with Python and Apache Spark.    </p>
+<hr />
+<p><em>This article originally appeared on Medium's <a href="https://towardsdatascience.com/">Towards Data Science</a> channel and is republished with permission.</em> </p>
+<hr /></body>
+</html>

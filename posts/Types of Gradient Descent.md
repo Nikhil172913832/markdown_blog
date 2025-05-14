@@ -1,0 +1,5 @@
+#ml 
+
+1. Batch Gradient Descent - Computes the gradient on the whole training set, which makes it inefficient for larger dataset.
+2. Stochastic Gradient Descent - It randomly picks training sample from the training set to compute the gradient which makes it efficient for larger datasets. Because it does not have a regular nature the solution it reaches to are fine but not the most optimal as keeps on jumping while descent. This can also be seen as an advantage as it prevents the model from getting caught in a local minima, making it much more probable for it find the global minima than the batch gradient descent. This also becomes a problem as this randomness can cause the model to never settle at the minimum but this can be dealt by using a learning schedule which starts of the learning rate with a relatively large value and then slowly decrease it to reduce the jumps and helping it settle to the global minimum.
+3. Mini-batch Gradient Descent - It is somewhat like SGD but takes small random batches of data unlike SGD, which makes it susceptible to local minima but the advantage it has over SGD is it will end up walking close to the minimum than SGD. 

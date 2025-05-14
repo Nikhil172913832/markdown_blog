@@ -1,0 +1,2 @@
+#ml 
+It is used for hypothesis testing and test of independence and feature importance(only works for categorical data). the formula for computing the statistic chi square the formula is sum of square of difference of observed and expected frequency divided by expected. the expected can be computed by row total * column total / grand total. 

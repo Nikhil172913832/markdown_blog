@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>AUC ROC Curve</title></head>
+<body><hr />
+<p>title: "AUC ROC Curve in Machine Learning - GeeksforGeeks"
+source: "https://www.geeksforgeeks.org/auc-roc-curve/"
+author:
+  - "[[GeeksforGeeks]]"
+published: 2020-11-25
+created: 2025-02-13
+description: "The AUC-ROC curve is a vital metric for evaluating the performance of binary classification models by plotting the True Positive Rate against the False Positive Rate at various thresholds, indicating the model's ability to distinguish between positive and negative classes."
+tags:
+  - "clippings"</p>
+<hr />
+<p>In machine learning model evaluation is crucial to ensure that the model performs well. Common evaluation metrics for classification tasks include accuracy, precision, recall, F1-score and AUC-ROC. In this article we’ll focus on the AUC-ROC curve a popular metric used to evaluate classification models.</p>
+<h2>How AUC-ROC curve is used?</h2>
+<p>The <strong><em>*AUC-ROC curve</em></strong><em> is an essential tool used for evaluating the performance of binary classification models. It plots the </em><strong><em>True Positive Rate (TPR)</em></strong><em> against the </em><strong><em>False Positive Rate (FPR)</em></strong>* at different thresholds showing how well a model can distinguish between two classes such as positive and negative outcomes.</p>
+<p>It provides a graphical representation of the model’s ability to distinguish between two classes like positive class for presence of a disease and negative class for absence of a disease.</p>
+<p>Key Terms in AUC-ROC:</p>
+<ul>
+<li><strong><em>*TPR (True Positive Rate)</em></strong>*: The ratio of correctly predicted positive instances.</li>
+<li><strong><em>*FPR (False Positive Rate)</em></strong>*: The ratio of incorrectly predicted negative instances.</li>
+<li><strong><em>*Specificity</em></strong>*: The proportion of actual negatives correctly identified by the model (inverse of FPR).</li>
+<li><strong><em>*Sensitivity/Recall</em></strong>*: The proportion of actual positives correctly identified by the model (same as TPR).</li>
+</ul>
+<p><img alt="roc4" src="https://media.geeksforgeeks.org/wp-content/uploads/20250206150722551549/roc4.png" /></p>
+<p>Sensitivity versus False Positive Rate plot</p>
+<p>These terms are derived from the <a href="https://www.geeksforgeeks.org/confusion-matrix-machine-learning/"><strong><em>*confusion matrix</em></strong>*</a> which provides the following values:</p>
+<ul>
+<li><strong><em>*True Positive (TP)</em></strong>*: Correctly predicted positive instances</li>
+<li><strong><em>*True Negative (TN)</em></strong>*: Correctly predicted negative instances</li>
+<li><strong><em>*False Positive (FP)</em></strong>*: Incorrectly predicted as positive</li>
+<li><strong><em>*False Negative (FN)</em></strong>*: Incorrectly predicted as negative</li>
+</ul>
+<p><img alt="roc1" src="https://media.geeksforgeeks.org/wp-content/uploads/20250206150101289181/roc1.png" /></p>
+<p>Confusion Matrix for a Classification Task</p>
+<h3>Understanding ROC and AUC:</h3>
+<ul>
+<li><strong><em>*ROC Curve</em></strong>*: <a href="https://www.geeksforgeeks.org/how-to-plot-roc-curve-in-python/">ROC Curve</a> plots TPR vs. FPR at different thresholds. It represents the trade-off between the sensitivity and specificity of a classifier.</li>
+<li><strong><em>*AUC (Area Under the Curve)</em></strong>*: <a href="https://www.geeksforgeeks.org/how-to-calculate-auc-area-under-curve-in-r/">AUC</a> measures the area under the ROC curve. A higher AUC value indicates better model performance as it suggests a greater ability to distinguish between classes. An AUC value of 1.0 indicates perfect performance while 0.5 suggests it is random guessing.</li>
+</ul>
+<h2>How AUC-ROC Works</h2>
+<p>AUC-ROC curve helps us understand how well a classification model distinguishes between the two classes (positive and negative).</p>
+<p>Imagine we have 6 data points and out of these:</p>
+<ul>
+<li><strong><em>*3 belong to the positive class:</em></strong>* Class 1 for people who have a disease.</li>
+<li><strong><em>*3 belong to the negative class:</em></strong>* Class 0 for people who don’t have disease.</li>
+</ul>
+<p><img alt="AUC-ROC-Curve" src="https://media.geeksforgeeks.org/wp-content/uploads/20250206150241961244/AUC-ROC-Curve.webp" /></p>
+<p>ROC-AUC Classification Evaluation Metric</p>
+<p>Now the model will give each data point a predicted probability of belonging to Class 1 (the positive class). The <strong><em>*AUC</em></strong><em> measures the model’s ability to assign </em><strong><em>higher predicted probabilities to the positive class</em></strong>* than to the negative class. Here’s how it work:</p>
+<ol>
+<li><strong><em>*Randomly choose a pair</em></strong>*: Pick one data point from the positive class (Class 1) and one from the negative class (Class 0).</li>
+<li><strong><em>*Check if the positive point has a higher predicted probability</em></strong>*: If the model assigns a higher probability to the positive data point than to the negative one for correct ranking.</li>
+<li><strong><em>*Repeat for all pairs</em></strong>*: We do this for all possible pairs of positive and negative examples.</li>
+</ol>
+<h3>When to Use AUC-ROC</h3>
+<p>AUC-ROC is effective when:</p>
+<ul>
+<li>The dataset is balanced and the model needs to be evaluated across all thresholds.</li>
+<li>False positives and false negatives are of similar importance.</li>
+</ul>
+<blockquote>
+<p>In cases of highly imbalanced datasets AUC-ROC might give overly optimistic results. In such cases the Precision-Recall Curve is more suitable focusing on the positive class.</p>
+</blockquote>
+<h3>Model Performance with AUC-ROC</h3>
+<ul>
+<li><strong><em>*High AUC (close to 1)</em></strong>*: The model effectively distinguishes between positive and negative instances.</li>
+<li><strong><em>*Low AUC (close to 0)</em></strong>*: The model struggles to differentiate between the two classes.</li>
+<li><strong><em>*AUC around 0.5</em></strong>*: The model doesn’t learn any meaningful patterns i.e it is doing random guessing.</li>
+</ul>
+<p>In short, the <strong><em>*AUC</em></strong><em> gives you an overall idea of how well your model is doing at sorting positives and negatives, without being affected by the threshold you set for classification. A higher </em><strong><em>AUC</em></strong>* means your model is doing good.</p>
+<h2>Implementation using two different models</h2>
+<h4>Installing Libraries</h4>
+<p><code>```python3 import numpy as np import pandas as pd import matplotlib.pyplot as plt from sklearn.datasets import make_classification from sklearn.model_selection import train_test_split from sklearn.linear_model import LogisticRegression from sklearn.ensemble import RandomForestClassifier from sklearn.metrics import roc_curve, auc ```</code></p>
+<p>In order to train the <a href="https://www.geeksforgeeks.org/random-forest-classifier-using-scikit-learn/">Random Forest</a> and <a href="https://www.geeksforgeeks.org/understanding-logistic-regression/">Logistic Regression</a> models and to present their ROC curves with AUC scores, the algorithm creates artificial binary classification data.</p>
+<h4>Generating data and splitting data</h4>
+<p><code>```python3 X, y = make_classification(     n_samples=1000, n_features=20, n_classes=2, random_state=42)  X_train, X_test, y_train, y_test = train_test_split(     X, y, test_size=0.2, random_state=42) ```</code></p>
+<p>Using an 80-20 split ratio, the algorithm creates artificial binary classification data with 20 features, divides it into training and testing sets, and assigns a random seed to ensure reproducibility.</p>
+<h4>Training the different models</h4>
+<p><code>```python3 logistic_model = LogisticRegression(random_state=42) logistic_model.fit(X_train, y_train)  random_forest_model = RandomForestClassifier(n_estimators=100, random_state=42) random_forest_model.fit(X_train, y_train) ```</code></p>
+<p>Using a fixed random seed to ensure repeatability, the method initializes and trains a logistic regression model on the training set. In a similar manner, it uses the training data and the same random seed to initialize and train a Random Forest model with 100 trees.</p>
+<h4>Predictions</h4>
+<p><code>```python3 y_pred_logistic = logistic_model.predict_proba(X_test)[:, 1] y_pred_rf = random_forest_model.predict_proba(X_test)[:, 1] ```</code></p>
+<p>Using the test data and a trained Logistic Regression model, the code predicts the positive class’s probability. In a similar manner, using the test data, it uses the trained Random Forest model to produce projected probabilities for the positive class.</p>
+<h4>Creating a dataframe</h4>
+<p><code>```python3 test_df = pd.DataFrame(     {'True': y_test, 'Logistic': y_pred_logistic, 'RandomForest': y_pred_rf}) ```</code></p>
+<p>Using the test data, the code creates a DataFrame called test_df with columns labeled “True,” “Logistic,” and “RandomForest,” adding true labels and predicted probabilities from the Random Forest and Logistic Regression models.</p>
+<h4>Plot the ROC Curve for the models</h4>
+<p><code>```python3 plt.figure(figsize=(7, 5))  for model in ['Logistic', 'RandomForest']:     fpr, tpr, _ = roc_curve(test_df['True'], test_df[model])     roc_auc = auc(fpr, tpr)     plt.plot(fpr, tpr, label=f'{model} (AUC = {roc_auc:.2f})')  plt.plot([0, 1], [0, 1], 'r--', label='Random Guess')  plt.xlabel('False Positive Rate') plt.ylabel('True Positive Rate') plt.title('ROC Curves for Two Models') plt.legend() plt.show() ```</code></p>
+<p><strong><em>*Output:</em></strong>*</p>
+<p><img alt="roc-Geeksforgeeks" src="https://media.geeksforgeeks.org/wp-content/uploads/20231206153808/roc.png" /></p>
+<p>The code generates a plot with 8 by 6 inch figures. It computes the AUC and ROC curve for each model (Random Forest and Logistic Regression), then plots the ROC curve. The ROC curve for random guessing is also represented by a red dashed line, and labels, a title, and a legend are set for visualization.</p>
+<h2>ROC-AUC for a multi-class model</h2>
+<p>For a multi-class setting, we can simply use one vs all methodology and you will have one ROC curve for each class. Let’s say you have four classes A, B, C and D then there would be ROC curves and corresponding AUC values for all the four classes, i.e. once A would be one class and B, C, and D combined would be the others class, similarly, B is one class and A, C, and D combined as others class, etc.</p>
+<p>The general steps for using AUC-ROC in the context of a multiclass classification model are:</p>
+<h4><strong><em>*One-vs-All Methodology:</em></strong>*</h4>
+<ul>
+<li>For each class in your multiclass problem, treat it as the positive class while combining all other classes into the negative class.</li>
+<li>Train the binary classifier for each class against the rest of the classes.</li>
+</ul>
+<h4>Calculate AUC-ROC for Each Class:</h4>
+<ul>
+<li>Here we plot the ROC curve for the given class against the rest.</li>
+<li>Plot the ROC curves for each class on the same graph. Each curve represents the discrimination performance of the model for a specific class.</li>
+<li>Examine the AUC scores for each class. A higher AUC score indicates better discrimination for that particular class.</li>
+</ul>
+<h3>Implementation of AUC-ROC in Multiclass Classification</h3>
+<h4>Importing Libraries</h4>
+<p><code>```python3 import numpy as np import matplotlib.pyplot as plt from sklearn.datasets import make_classification from sklearn.model_selection import train_test_split from sklearn.preprocessing import label_binarize from sklearn.multiclass import OneVsRestClassifier from sklearn.linear_model import LogisticRegression from sklearn.ensemble import RandomForestClassifier from sklearn.metrics import roc_curve, auc from itertools import cycle ```</code></p>
+<p>The program creates artificial multiclass data, divides it into training and testing sets, and then uses the <a href="https://www.geeksforgeeks.org/one-vs-rest-strategy-for-multi-class-classification/">One-vs-Restclassifier</a> technique to train classifiers for both Random Forest and Logistic Regression. Lastly, it plots the two models’ multiclass ROC curves to demonstrate how well they discriminate between various classes.</p>
+<h4>Generating Data and splitting</h4>
+<p><code>```python3 X, y = make_classification(     n_samples=1000, n_features=20, n_classes=3, n_informative=10, random_state=42)  y_bin = label_binarize(y, classes=np.unique(y))  X_train, X_test, y_train, y_test = train_test_split(     X, y_bin, test_size=0.2, random_state=42) ```</code></p>
+<p>Three classes and twenty features make up the synthetic multiclass data produced by the code. After label binarization, the data is divided into training and testing sets in an 80-20 ratio.</p>
+<h4>Training Models</h4>
+<p><code>```python3 logistic_model = OneVsRestClassifier(LogisticRegression(random_state=42)) logistic_model.fit(X_train, y_train)  rf_model = OneVsRestClassifier(     RandomForestClassifier(n_estimators=100, random_state=42)) rf_model.fit(X_train, y_train) ```</code></p>
+<p>The program trains two multiclass models: a Random Forest model with 100 estimators and a Logistic Regression model with the One-vs-Rest approach. With the training set of data, both models are fitted.</p>
+<h4>Plotting the AUC-ROC Curve</h4>
+<p><code>```python3 fpr = dict() tpr = dict() roc_auc = dict()  models = [logistic_model, rf_model]  plt.figure(figsize=(6, 5)) colors = cycle(['aqua', 'darkorange'])  for model, color in zip(models, colors):     for i in range(model.classes_.shape[0]):         fpr[i], tpr[i], _ = roc_curve(             y_test[:, i], model.predict_proba(X_test)[:, i])         roc_auc[i] = auc(fpr[i], tpr[i])         plt.plot(fpr[i], tpr[i], color=color, lw=2,                  label=f'{model.__class__.__name__} - Class {i} (AUC = {roc_auc[i]:.2f})')  plt.plot([0, 1], [0, 1], 'k--', lw=2, label='Random Guess')  plt.xlabel('False Positive Rate') plt.ylabel('True Positive Rate') plt.title('Multiclass ROC Curve with Logistic Regression and Random Forest') plt.legend(loc="lower right") plt.show() ```</code></p>
+<p><strong><em>*Output:</em></strong>*</p>
+<p><img alt="multi-Geeksforgeeks" src="https://media.geeksforgeeks.org/wp-content/uploads/20231206155921/multi.png" /></p>
+<p>The Random Forest and Logistic Regression models’ ROC curves and AUC scores are calculated by the code for each class. The multiclass ROC curves are then plotted showing the discrimination performance of each class and featuring a line that represents random guessing. The resulting plot offers a graphic evaluation of the models’ classification performance.</p>
+<h2>FAQs for AUC ROC Curve in Machine Learning</h2>
+<p><strong><em>*What is the AUC-ROC curve?</em></strong>*</p>
+<blockquote>
+<p>For various classification thresholds, the trade-off between true positive rate (sensitivity) and false positive rate (specificity) is graphically represented by the AUC-ROC curve.</p>
+</blockquote>
+<p><strong><em>*What does a perfect AUC-ROC curve look like?</em></strong>*</p>
+<blockquote>
+<p>An area of 1 on an ideal AUC-ROC curve would mean that the model achieves optimal sensitivity and specificity at all thresholds.</p>
+</blockquote>
+<p><strong><em>*What does an AUC value of 0.5 signify?</em></strong>*</p>
+<blockquote>
+<p>AUC of 0.5 indicates that the model’s performance is comparable to that of random chance. It suggests a lack of discriminating ability.</p>
+</blockquote>
+<p><strong><em>*Can AUC-ROC be used for multiclass classification?</em></strong>*</p>
+<blockquote>
+<p>AUC-ROC is frequently applied to issues involving binary classification. Variations such as the macro-average or micro-average AUC can be taken into consideration for multiclass classification.</p>
+</blockquote>
+<p><strong><em>*How is the AUC-ROC curve useful in model evaluation?</em></strong>*</p>
+<blockquote>
+<p>The ability of a model to discriminate between classes is comprehensively summarized by the AUC-ROC curve. When working with unbalanced datasets, it is especially helpful.</p>
+</blockquote>
+<p><strong>Get IBM Certification</strong> and a <strong>90% fee refund</strong> on completing 90% course in 90 days! <a href="https://www.geeksforgeeks.org/courses/data-science-live?utm_source=geeksforgeeks&amp;utm_medium=bottomtextad&amp;utm_campaign=three90">Take the Three 90 Challenge today.</a></p>
+<p>Master Machine Learning, Data Science &amp; AI with this complete program and also get a 90% refund. What more motivation do you need? <a href="https://www.geeksforgeeks.org/courses/data-science-live?utm_source=geeksforgeeks&amp;utm_medium=bottomtextad&amp;utm_campaign=three90">Start the challenge right away!</a></p></body>
+</html>

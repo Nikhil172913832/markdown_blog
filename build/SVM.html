@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>SVM</title></head>
+<body><h1>ml</h1>
+<p>There are two types of Classification-
+1. Hard Margin Classification : Here we strictly impose that all instances be off the street and on the right side which is not very practical as we look into real data as there are bound to be anomalies and most of the time data is not linearly separable and this forceful nature makes it very sensitive to outliers. 
+2. Soft Margin Classification : This aims to keeping the streets as wide as possible while keeping the margin violations low which help it generalise better than the hard margin classifier.
+When using sci-kit-learn to use them C hyper parameter, the smaller the value is the wider the streets would be with more margin violations and vice versa. Other way to do it is to use SVC class instead of the LinearSVC with kernel = "linear" and c = 1 but that makes it much slower so it is not recommended another way of doing it would be to use SGDClassifier with loss = "hinge" and alpha = 1/(m*C) which applies Stochastic gradient descent to SVM which would make it converge slower but would be much better when dealing with out-of-core([[ML/Keywords]]) training.</p></body>
+</html>

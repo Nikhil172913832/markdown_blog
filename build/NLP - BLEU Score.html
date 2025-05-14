@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>NLP - BLEU Score</title></head>
+<body><hr />
+<p>title: "NLP - BLEU Score for Evaluating Neural Machine Translation - Python - GeeksforGeeks"
+source: "https://www.geeksforgeeks.org/nlp-bleu-score-for-evaluating-neural-machine-translation-python/"
+author:
+  - "[[GeeksforGeeks]]"
+published: 2022-10-23
+created: 2025-02-09
+description: "A Computer Science portal for geeks. It contains well written, well thought and well explained computer science and programming articles, quizzes and practice/competitive programming/company interview Questions."
+tags:
+  - "clippings"</p>
+<hr />
+<p><strong><em>*Neural Machine Translation (NMT)</em></strong><em> is a standard task in </em><strong><em>NLP</em></strong><em> that involves translating a text from a source language to a target language. </em><strong><em>BLEU (Bilingual Evaluation Understudy)</em></strong>* is a score used to evaluate the translations performed by a machine translator. In this article, we’ll see the mathematics behind the BLEU score and its implementation in Python.</p>
+<p>Table of Content</p>
+<ul>
+<li><a href="https://www.geeksforgeeks.org/nlp-bleu-score-for-evaluating-neural-machine-translation-python/#what-is-bleu-score">What is BLEU Score?</a></li>
+<li><a href="https://www.geeksforgeeks.org/nlp-bleu-score-for-evaluating-neural-machine-translation-python/#mathematical-expression-for-bleu-score">Mathematical Expression for BLEU Score</a></li>
+<li><a href="https://www.geeksforgeeks.org/nlp-bleu-score-for-evaluating-neural-machine-translation-python/#how-to-compute-bleu-score">How to Compute BLEU Score?</a></li>
+<li><a href="https://www.geeksforgeeks.org/nlp-bleu-score-for-evaluating-neural-machine-translation-python/#bleu-score-implementation-in-python">BLEU Score Implementation in Python</a></li>
+</ul>
+<h2>What is BLEU Score?</h2>
+<p>As stated above BLEU Score is an evaluation metric for Machine Translation tasks. It is calculated by comparing the <a href="https://www.geeksforgeeks.org/n-gram-language-modelling-with-nltk/">n-grams</a> of machine-translated sentences to the n-gram of human-translated sentences. Usually, it has been observed that the BLEU score decreases as the sentence length increases. This, however, might vary depending upon the model used for translation. The following is a graph depicting the variation of the BLEU Score with the sentence length. </p>
+<p><img alt="" src="https://media.geeksforgeeks.org/wp-content/uploads/20220822100703/BLEU.PNG" /></p>
+<h2>Mathematical Expression for BLEU Score</h2>
+<p>Mathematically, BLEU Score is given as follows:</p>
+<blockquote>
+<p>$$
+BLEU Score = BP * exp(\sum_{i=1}^{N}(w_i * ln(p_i))
+$$</p>
+<p>Here,</p>
+<ul>
+<li><strong><em>*BP</em></strong><em> stands for </em><strong><em>Brevity Penalty</em></strong>*</li>
+<li>$$
+w_i
+$$
+ is the weight for n-gram precision of order i (typically weights are equal for all i)</li>
+<li>$$
+p_i
+$$
+ is the n-gram modified precision score of order i.</li>
+<li>N is the maximum n-gram order to consider (usually up to 4)</li>
+</ul>
+</blockquote>
+<h3>Modified n-gram precision (</h3>
+<p>$$
+p_i
+$$
+)</p>
+<p>The modified precision 
+$$
+p_i
+$$
+ is indeed calculated as the ratio between the number of <strong>n</strong>-grams in the candidate translation that match exactly <strong>n</strong>-grams in any of the reference translations, clipped by the number of <strong>n</strong>-grams in the candidate translation.</p>
+<blockquote>
+<p>$$
+p_i = \frac{\text{Count Clip}(matches_i, \text{max-ref-count}_i)}{\text{candidate-n-grams}_i}
+$$</p>
+<p>Here,</p>
+<ul>
+<li>Count Clips is a function that clips the number of matched n-grams (
+$$
+matches_i
+$$
+ )by the maximum count of the n-gram across all reference translations (
+$$
+\text{max-ref-count}_i
+$$
+.</li>
+<li>$$
+matches_i
+$$
+ is the number of n-grams of order i that match <strong><em>*exactly</em></strong>* between the candidate translation and any of the reference translations.</li>
+<li>$$
+\text{max-ref-count}_i
+$$
+ is the maximum number of occurrences of the specific n-gram of order i found in any single reference translation.</li>
+<li>$$
+\text{candidate-n-grams}_i
+$$
+ is the total number of n-grams of order i present in the candidate translation.</li>
+</ul>
+</blockquote>
+<h3>Brevity Penalty (BP)</h3>
+<p><strong><em>*Brevity Penalty</em></strong><em> penalizes translations that are shorter than the reference translations. The mathematical expression for </em><strong><em>Brevity Penalty</em></strong>* is given as follows:</p>
+<blockquote>
+<p>$$
+BP = \exp(1- \frac{r}{c})
+$$</p>
+<p>Here,</p>
+<ul>
+<li>r is the length of the candidate translation</li>
+<li>c is the average length of the reference translations.</li>
+</ul>
+</blockquote>
+<h2>How to Compute BLEU Score?</h2>
+<p>For a better understanding of the calculation of the BLEU Score, let us take an example. Following is a case for French to English Translation:</p>
+<ul>
+<li><strong><em>*Source Text (French)</em></strong>*: cette image est cliqué par moi</li>
+<li><strong><em>*Machine Translated Text</em></strong>*: the picture the picture by me</li>
+<li><strong><em>*Reference Text-1</em></strong>*: this picture is clicked by me</li>
+<li><strong><em>*Reference Text-2</em></strong>*: the picture was clicked by me</li>
+</ul>
+<p>We can clearly see that the translation done by the machine is not accurate. Let’s calculate the BLEU score for the translation.</p>
+<h3>Unigram Modified Precision</h3>
+<p>For <strong><em>*n = 1,</em></strong><em> we’ll calculate the </em><strong><em>Unigram Modified Precision:</em></strong>*</p>
+<p>| Unigram | Count in Machine Translation | Max count in Ref | Clipped Count =   min (Count in MT, Max Count in Ref) |
+| --- | --- | --- | --- |
+| the | 2 | 1 | 1 |
+| picture | 2 | 1 | 1 |
+| by | 1 | 1 | 1 |
+| me | 1 | 1 | 1 |</p>
+<p>Here the unigrams (the, picture, by, me) are taken from the machine-translated text. Count refers to the frequency of n-grams in all the Machine Translated Text, and Clipped Count refers to the frequency of unigram in the reference texts collectively.</p>
+<p>$$
+P_1 = \frac{\text{Clipped Count}}{\text{Count in MT}} = \frac{1+1+1+1}{2+2+1+1} =\frac{4}{6} = \frac{2}{3}
+$$</p>
+<h3><strong><em>*Bigram Modified Precision</em></strong>*</h3>
+<p>For <strong><em>*n = 2</em></strong><em>, we’ll calculate the </em><strong><em>Bigram Modified Precision</em></strong>*:</p>
+<p>| Bigrams | Count in MT | Max Count in Ref | Clipped Count =   min (Count in MT, Max Count in Ref) |
+| --- | --- | --- | --- |
+| the picture | 2 | 1 | 1 |
+| picture the | 1 | 0 | 0 |
+| picture by | 1 | 0 | 0 |
+| by me | 1 | 1 | 1 |</p>
+<p>$$
+P_2 = \frac{\text{Clip Count}}{\text{Count in MT}} = \frac{2}{5}
+$$</p>
+<h3><strong><em>*Trigram Modified Precision</em></strong>*</h3>
+<p>For <strong><em>*n = 3</em></strong><em>, we’ll calculate the </em><strong><em>Trigram Modified Precision:</em></strong>*</p>
+<p>| Trigram | Count in MT | Max Count in Ref | Clipped Count =   min (Count in MT, Max Count in Ref) |
+| --- | --- | --- | --- |
+| the picture the | 1 | 0 | 0 |
+| picture the picture | 1 | 0 | 0 |
+| the picture by | 1 | 0 | 0 |
+| picture by me | 1 | 0 | 0 |</p>
+<p>$$
+P_3 = \frac{0+0+0+0}{1+1+1+1} =0.0
+$$</p>
+<h3><strong><em>*4-gram Modified Precision</em></strong>*</h3>
+<p>For <strong><em>*n =4</em></strong><em>, we’ll calculate the </em><strong><em>4-gram Modified Precision:</em></strong>*</p>
+<p>| 4-gram | Count | Max Count in Ref | Clipped Count =   min (Count in MT, Max Count in Ref) |
+| --- | --- | --- | --- |
+| the picture the picture | 1 | 0 | 0 |
+| picture the picture by | 1 | 0 | 0 |
+| the picture by me | 1 | 0 | 0 |</p>
+<p>$$
+P_4 = \frac{0+0+0}{1+1+1} =0.0
+$$</p>
+<h3>Computing Brevity Penalty</h3>
+<p>Now we have computed all the precision scores, let’s find the Brevity Penalty for the translation:</p>
+<p>$$
+Brevity Penalty = min(1, \frac{Machine\,Translation\,Output\,Length}{Maximum\,Reference\,Output\,Length})
+$$</p>
+<ul>
+<li><strong><em>*Machine Translation Output Length =</em></strong>* 6 (Machine Translated Text: the picture the picture by me)</li>
+<li><strong><em>*Max Reference Output Length =</em></strong>* 6 (Reference Text-2: the picture was clicked by me)</li>
+</ul>
+<p>$$
+Brevity Penalty (BP) = min(1, \frac{6}{6}) = 1
+$$</p>
+<h3>Computing BLEU Score</h3>
+<p>Finally, the BLEU score for the above translation is given by:</p>
+<p>$$
+BLEU Score = BP * exp(\sum_{n=1}^{4} w_i * log(p_i))
+$$</p>
+<p>On substituting the values, we get,</p>
+<p>$$
+\text{BLEU Score} = 1 * exp(0.25<em>ln(2/3) + 0.25</em>ln(2/5) + 0<em>ln(0) + 0</em>ln(0))
+$$</p>
+<p>$$
+\text{BLEU Score} = 0.718
+$$</p>
+<p>Finally, we have calculated the BLEU score for the given translation. </p>
+<h2>BLEU Score Implementation in Python</h2>
+<p>Having calculated the BLEU Score manually, one is by now accustomed to the mathematical working of the BLEU score. However, Python’s <a href="https://www.geeksforgeeks.org/python-nltk-nltk-whitespacetokenizer/">NLTK</a> provides an in-built module for BLEU score calculation. Let’s calculate the BLEU score for the same translation example as above but this time using NLTK. </p>
+<p><strong><em>*Code:</em></strong>*</p>
+<ul>
+<li>Python3</li>
+</ul>
+<h2>Python3</h2>
+<p><code>from</code> <code>nltk.translate.bleu_score ``import</code> <code>sentence_bleu</code></p>
+<p><code>weights ``=</code> <code>(``0.25``, ``0.25``, ``0``, ``0``)</code></p>
+<p><code>reference ``=</code> <code>[[``"the"``, ``"picture"``, ``"is"``, ``"clicked"``, ``"by"``, ``"me"``],</code></p>
+<p><code>[``"this"``, ``"picture"``, ``"was"``, ``"clicked"``, ``"by"``, ``"me"``]]</code></p>
+<p><code>predictions ``=</code> <code>[``"the"``, ``"picture"``, ``"the"``, ``"picture"``, ``"by"``, ``"me"``]</code></p>
+<p><code>score ``=</code> <code>sentence_bleu(reference, predictions, weights``=``weights)</code></p>
+<p><code>print``(score)</code></p>
+<p><strong><em>*Output:</em></strong>*</p>
+<p><code>0.7186082239261684</code></p>
+<p>We can see that the BLEU score computed using Python is the same as the one computed manually. Thus, we have successfully calculated the BLEU score and understood the mathematics behind it. </p>
+<p><strong>Get IBM Certification</strong> and a <strong>90% fee refund</strong> on completing 90% course in 90 days! <a href="https://www.geeksforgeeks.org/courses/data-science-live?utm_source=geeksforgeeks&amp;utm_medium=bottomtextad&amp;utm_campaign=three90">Take the Three 90 Challenge today.</a></p>
+<p>Master Machine Learning, Data Science &amp; AI with this complete program and also get a 90% refund. What more motivation do you need? <a href="https://www.geeksforgeeks.org/courses/data-science-live?utm_source=geeksforgeeks&amp;utm_medium=bottomtextad&amp;utm_campaign=three90">Start the challenge right away!</a></p></body>
+</html>

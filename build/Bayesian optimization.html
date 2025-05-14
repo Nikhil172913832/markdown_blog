@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Bayesian optimization</title></head>
+<body><p>Bayesian Optimization is a <strong>global optimization technique</strong> that finds the best hyperparameters <strong>by modeling the objective function probabilistically</strong> instead of blindly searching. The math involves two key components:</p>
+<ol>
+<li>
+<p><strong>Surrogate Function (Gaussian Process - GP)</strong></p>
+</li>
+<li>
+<p><strong>Acquisition Function (Expected Improvement, Upper Confidence Bound, etc.)</strong></p>
+</li>
+</ol>
+<hr />
+<h2><strong>1. Surrogate Function: Gaussian Process (GP) Regression</strong></h2>
+<p>Since evaluating hyperparameters is expensive (e.g., training deep networks takes hours), we approximate the objective function f(x)f(x)f(x) using a surrogate function.</p>
+<p>A <strong>Gaussian Process (GP)</strong> is a <strong>non-parametric</strong> model that estimates f(x)f(x)f(x) with <strong>a mean and uncertainty (variance) at every point</strong>.</p>
+<h3><strong>Gaussian Process Definition</strong></h3>
+<p>A GP defines a <strong>distribution over functions</strong>:</p>
+<p>f(x)∼GP(m(x),k(x,x′))f(x) \sim \mathcal{GP}(m(x), k(x, x'))f(x)∼GP(m(x),k(x,x′))</p>
+<p>Where:</p>
+<ul>
+<li>
+<p>m(x)m(x)m(x) is the <strong>mean function</strong> (usually assumed to be 0).</p>
+</li>
+<li>
+<p>k(x,x′)k(x, x')k(x,x′) is the <strong>covariance/kernel function</strong>, which measures similarity between points xxx and x′x'x′.</p>
+</li>
+</ul>
+<hr />
+<h3><strong>Gaussian Process Prior &amp; Posterior</strong></h3>
+<p>Initially, before evaluating any points, we assume:</p>
+<p>f(x)∼N(0,K)f(x) \sim \mathcal{N}(0, K)f(x)∼N(0,K)</p>
+<p>where KKK is the covariance matrix using a kernel function like <strong>Radial Basis Function (RBF)</strong>:</p>
+<p>k(x,x′)=exp⁡(−∣∣x−x′∣∣22l2)k(x, x') = \exp\left(-\frac{||x - x'||^2}{2l^2}\right)k(x,x′)=exp(−2l2∣∣x−x′∣∣2​)</p>
+<p>After observing some data points (X,y)(X, y)(X,y), we <strong>update our belief</strong> about f(x)f(x)f(x) using <strong>Bayes' Theorem</strong>:</p>
+<p>p(f(x)∣X,y)∼N(μ(x),σ2(x))p(f(x) | X, y) \sim \mathcal{N}(\mu(x), \sigma^2(x))p(f(x)∣X,y)∼N(μ(x),σ2(x))</p>
+<p>where:</p>
+<ul>
+<li>
+<p><strong>Mean μ(x)\mu(x)μ(x)</strong>: Our best estimate of f(x)f(x)f(x).</p>
+</li>
+<li>
+<p><strong>Variance σ2(x)\sigma^2(x)σ2(x)</strong>: Our uncertainty at each point.</p>
+</li>
+</ul>
+<p>The mean and variance of the Gaussian Process posterior are computed as:</p>
+<p>μ(x)=KxXKXX−1y\mu(x) = K_{xX} K_{XX}^{-1} yμ(x)=KxX​KXX−1​y σ2(x)=Kxx−KxXKXX−1KXx\sigma^2(x) = K_{xx} - K_{xX} K_{XX}^{-1} K_{Xx}σ2(x)=Kxx​−KxX​KXX−1​KXx​</p>
+<p>where:</p>
+<ul>
+<li>
+<p>KXXK_{XX}KXX​ is the covariance matrix of observed data.</p>
+</li>
+<li>
+<p>KxXK_{xX}KxX​ is the covariance between new and observed points.</p>
+</li>
+<li>
+<p>KxxK_{xx}Kxx​ is the self-covariance of new points.</p>
+</li>
+</ul>
+<p>This allows us to <strong>predict the function without explicitly defining it!</strong> 🚀</p>
+<hr />
+<h2><strong>2. Acquisition Function: Selecting the Next Point</strong></h2>
+<p>Now that we have a Gaussian Process model for f(x)f(x)f(x), we need to decide <strong>where to sample next</strong>. This is done using an <strong>acquisition function</strong> that balances <strong>exploration vs exploitation</strong>.</p>
+<h3><strong>Common Acquisition Functions</strong></h3>
+<ol>
+<li>
+<p><strong>Expected Improvement (EI)</strong></p>
+<ul>
+<li>
+<p>Picks points that <strong>maximize expected improvement</strong> over the current best result.</p>
+</li>
+<li>
+<p>Formula:</p>
+<p>EI(x)=E[max⁡(0,f(x)−f∗)]EI(x) = \mathbb{E}[\max(0, f(x) - f^*)]EI(x)=E[max(0,f(x)−f∗)]</p>
+<p>where f∗f^*f∗ is the best observed function value so far.</p>
+</li>
+<li>
+<p>This encourages selecting points with high predicted values and high uncertainty.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Upper Confidence Bound (UCB)</strong></p>
+<ul>
+<li>
+<p>Selects points that maximize:</p>
+<p>UCB(x)=μ(x)+κσ(x)UCB(x) = \mu(x) + \kappa \sigma(x)UCB(x)=μ(x)+κσ(x)
+    - <strong>κ\kappaκ controls exploration-exploitation</strong> trade-off.</p>
+<ul>
+<li>
+<p><strong>Large κ\kappaκ</strong> → More exploration.</p>
+</li>
+<li>
+<p><strong>Small κ\kappaκ</strong> → More exploitation.</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Probability of Improvement (PI)</strong></p>
+<ul>
+<li>
+<p>Picks points where probability of improvement is highest:</p>
+<p>PI(x)=P(f(x)&gt;f∗)PI(x) = P(f(x) &gt; f^*)PI(x)=P(f(x)&gt;f∗)
+    - This strategy is simple but less effective than EI.</p>
+</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2><strong>3. Full Bayesian Optimization Algorithm</strong></h2>
+<p>Now we put everything together:</p>
+<ol>
+<li>
+<p><strong>Initialize</strong> with a few randomly selected hyperparameters.</p>
+</li>
+<li>
+<p><strong>Fit a Gaussian Process</strong> to model the objective function f(x)f(x)f(x).</p>
+</li>
+<li>
+<p><strong>Use an acquisition function</strong> (EI, UCB, PI) to choose the next best hyperparameter.</p>
+</li>
+<li>
+<p><strong>Evaluate the objective function</strong> at the chosen hyperparameter.</p>
+</li>
+<li>
+<p><strong>Update the Gaussian Process model</strong> with the new observation.</p>
+</li>
+<li>
+<p><strong>Repeat until convergence</strong> (or budget runs out).</p>
+</li>
+</ol>
+<hr />
+<h2><strong>4. Why Bayesian Optimization is Efficient</strong></h2>
+<p>✅ <strong>Learns from past evaluations</strong> → Doesn't waste time on bad regions.<br />
+✅ <strong>Uncertainty-aware</strong> → Balances exploration and exploitation.<br />
+✅ <strong>Works well with expensive function evaluations</strong> (Deep Learning, Hyperparameter tuning).</p>
+<p>🔴 <strong>Downside?</strong></p>
+<ul>
+<li>
+<p><strong>Computational cost</strong> increases as the number of evaluations grows (because GP inversion scales as O(n3)O(n^3)O(n3)).</p>
+</li>
+<li>
+<p><strong>Not ideal for very high-dimensional spaces</strong>, but TPE (Tree-structured Parzen Estimators) solve this.</p>
+</li>
+</ul></body>
+</html>

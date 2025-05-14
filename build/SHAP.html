@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>SHAP</title></head>
+<body><h1>ml</h1>
+<p>SHAP values improve upon PDP by addressing two major issues:</p>
+<ol>
+<li><strong>PDP creates unrealistic samples</strong> because it assumes feature independence. It fixes all other features and varies the target feature, leading to impossible data points when features are correlated.</li>
+<li><strong>PDP suffers from isolation effects</strong>—it doesn’t account for how a feature interacts with others, so its effect may be exaggerated or underestimated.</li>
+</ol>
+<p>SHAP solves these problems by changing <strong>how hypothetical data points are created</strong>:</p>
+<ul>
+<li>Instead of varying only one feature while keeping others fixed, SHAP takes a <strong>random permutation of features</strong>.</li>
+<li>Given a permutation, all features <strong>to the right</strong> of the target feature (including the target itself) are replaced with values from a reference dataset (real samples).</li>
+<li>The difference between model predictions for these new data points and their counterparts <strong>with and without the target feature</strong> allows SHAP to fairly compute the <strong>marginal contribution</strong> of the feature.</li>
+</ul>
+<p>This method respects feature dependencies, reducing the risk of impossible samples and mitigating the isolation effect.</p></body>
+</html>

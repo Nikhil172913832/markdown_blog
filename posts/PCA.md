@@ -1,0 +1,3 @@
+#ml
+
+so this is basically a method used for dimensionality reduction how it works is simple you find the centre of the distribution and then shift the distribution so that the centre aligns with the origin now you find the best fit line that passes through the origin and then a line perpendicular to it that also is a best fit line and you keep going for all the dimensions you have so the idea is that these pca features are linear combinations of these features so the features that are highly correlated its better to use their linear combinations than to use them individually which is just redundant
